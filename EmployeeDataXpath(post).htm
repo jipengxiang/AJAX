@@ -1,0 +1,112 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <title>Requesting XML</title>
+    <script type="text/javascript" lang="javascript">
+        document.write(Date());
+        //Global XMLHTTP Request object      
+        var XmlHttp;
+        //Creating and setting the instance of appropriate XMLHTTP Request object to a “XmlHttp” variable  
+        function CreateXmlHttp() {
+            if (window.XMLHttpRequest) {
+                XmlHttp = new XMLHttpRequest();
+            }
+            else {
+                XmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            return XmlHttp;
+
+        }
+
+        function HandleResponse() {
+            // To make sure receiving response data from server is completed
+            if (XmlHttp.readyState == 4) {
+                // To make sure valid response is received from the server, 200 means response received is OK
+                if (XmlHttp.status == 200) {
+                    var xml = XmlHttp.responseXML
+
+                    //parsing XML result
+
+
+                   // path = "/bookstore/book/title";
+                    path = "/bookstore/book/price";
+                    var strResult = "";
+
+                    // code for IE
+                    if (window.ActiveXObject || XmlHttp.responseType == "msxml-document") {
+                        xml.setProperty("SelectionLanguage", "XPath");
+                        nodes = xml.selectNodes(path);
+                        for (i = 0; i < nodes.length; i++) {
+                            //document.write(nodes[i].childNodes[0].nodeValue);
+                            //document.write("<br>");
+                            strResult += nodes[i].childNodes[0].nodeValue +"<br>";
+
+                            
+                        }
+                    }
+
+                        // code for Chrome, Firefox, Opera, etc.
+                    else if (document.implementation && document.implementation.createDocument) {
+                        var nodes = xml.evaluate(path, xml, null, XPathResult.ANY_TYPE, null);
+                        var result = nodes.iterateNext();
+
+                        while (result) {
+                            //document.write(result.childNodes[0].nodeValue);
+                            //document.write("<br>");
+                            strResult += result.childNodes[0].nodeValue + "</br>";
+                            result = nodes.iterateNext();
+                        }
+                    }
+
+
+                    //update the DOM with the result
+                    document.getElementById("divResult").innerHTML = strResult;
+
+                    document.getElementById("divStatus").innerHTML = "";
+                    //clear the busy loading status
+                    document.getElementById('centreHolder').innerHTML = ""
+                }
+                else {
+                    alert("There was a problem retrieving data from the server.");
+                }
+            }
+        }
+
+        function getDoc() {
+            CreateXmlHttp();
+
+            if (XmlHttp) {
+
+                //Initializes the request object with POST (METHOD of posting),
+                //Request URL and sets the request as asynchronous.
+                XmlHttp.open("GET", "books.xml", true);
+
+                //XmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+                //Setting the status
+                document.getElementById("divStatus").innerHTML = "Please wait...";
+                document.getElementById('centreHolder').innerHTML = "<img src='ajax-loader.gif' height='50' width='50'/>"
+
+                //Setting the event handler for the response
+                XmlHttp.onreadystatechange = HandleResponse;
+                XmlHttp.send(null);
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Requesting XML</h1>
+    <form>
+        <input type="button" id="reqDoc" value="Make request" onclick="getDoc()">
+    </form>
+
+    <div id="divResult" style="height: 30px">
+    </div>
+
+    <div id="divStatus" style="height: 30px">
+    </div>
+
+    <div id="centreHolder"></div>
+</body>
+</html>
